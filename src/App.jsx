@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React from 'react';
+import { useState } from 'react';
 import './App.scss';
 
 import usersFromServer from './api/users';
@@ -27,6 +27,15 @@ export const App = () => {
     };
   });
 
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
+  const visibleProducts = selectedUserId
+    ? products.filter(product => product.owner.id === selectedUserId)
+    : products;
+
+  const handleFilterAll = () => setSelectedUserId(null);
+  const handleFilterUser = id => setSelectedUserId(id);
+
   return (
     <div className="section">
       <div className="container">
@@ -37,21 +46,26 @@ export const App = () => {
             <p className="panel-heading">Filters</p>
 
             <p className="panel-tabs has-text-weight-bold">
-              <a data-cy="FilterAllUsers" href="#/">
+              <a
+                data-cy="FilterAllUsers"
+                href="#/"
+                className={!selectedUserId ? 'is-active' : ''}
+                onClick={handleFilterAll}
+              >
                 All
               </a>
 
-              <a data-cy="FilterUser" href="#/">
-                User 1
-              </a>
-
-              <a data-cy="FilterUser" href="#/" className="is-active">
-                User 2
-              </a>
-
-              <a data-cy="FilterUser" href="#/">
-                User 3
-              </a>
+              {usersFromServer.map(user => (
+                <a
+                  key={user.id}
+                  data-cy="FilterUser"
+                  href="#/"
+                  onClick={() => handleFilterUser(user.id)}
+                  className={selectedUserId === user.id ? 'is-active' : ''}
+                >
+                  {user.name}
+                </a>
+              ))}
             </p>
 
             <div className="panel-block">
@@ -125,89 +139,52 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
-          </p>
-
-          <table
-            data-cy="ProductTable"
-            className="table is-striped is-narrow is-fullwidth"
-          >
-            <thead>
-              <tr>
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    ID
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Product
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-down" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    Category
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort-up" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-
-                <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
-                    User
-                    <a href="#/">
-                      <span className="icon">
-                        <i data-cy="SortIcon" className="fas fa-sort" />
-                      </span>
-                    </a>
-                  </span>
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {products.map(product => (
-                <tr data-cy="Product" key={product.id}>
-                  <td className="has-text-weight-bold" data-cy="ProductId">
-                    {product.id}
-                  </td>
-
-                  <td data-cy="ProductName">{product.name}</td>
-
-                  <td data-cy="ProductCategory">
-                    {product.category.icon} - {product.category.title}
-                  </td>
-
-                  <td
-                    data-cy="ProductUser"
-                    className={
-                      product.owner.sex === 'm'
-                        ? 'has-text-link'
-                        : 'has-text-danger'
-                    }
-                  >
-                    {product.owner.name}
-                  </td>
+          {visibleProducts.length === 0 ? (
+            <p data-cy="NoMatchingMessage">
+              No products matching selected criteria
+            </p>
+          ) : (
+            <table
+              data-cy="ProductTable"
+              className="table is-striped is-narrow is-fullwidth"
+            >
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>User</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {visibleProducts.map(product => (
+                  <tr data-cy="Product" key={product.id}>
+                    <td className="has-text-weight-bold" data-cy="ProductId">
+                      {product.id}
+                    </td>
+
+                    <td data-cy="ProductName">{product.name}</td>
+
+                    <td data-cy="ProductCategory">
+                      {product.category.icon} - {product.category.title}
+                    </td>
+
+                    <td
+                      data-cy="ProductUser"
+                      className={
+                        product.owner.sex === 'm'
+                          ? 'has-text-link'
+                          : 'has-text-danger'
+                      }
+                    >
+                      {product.owner.name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
