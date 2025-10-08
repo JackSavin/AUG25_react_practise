@@ -28,13 +28,32 @@ export const App = () => {
   });
 
   const [selectedUserId, setSelectedUserId] = useState(null);
-
-  const visibleProducts = selectedUserId
-    ? products.filter(product => product.owner.id === selectedUserId)
-    : products;
+  const [searchValue, setSearchValue] = useState('');
 
   const handleFilterAll = () => setSelectedUserId(null);
   const handleFilterUser = id => setSelectedUserId(id);
+
+  const handleSearchChange = e => setSearchValue(e.target.value);
+  const handleClearSearch = () => setSearchValue('');
+
+  const handleResetAll = () => {
+    setSelectedUserId(null);
+    setSearchValue('');
+  };
+
+  let visibleProducts = products;
+
+  if (selectedUserId) {
+    visibleProducts = visibleProducts.filter(
+      product => product.owner.id === selectedUserId,
+    );
+  }
+
+  // eslint-disable-next-line
+  if (searchValue.trim() !== '') {
+    visibleProducts = visibleProducts.filter(product =>
+      product.name.toLowerCase().includes(searchValue.toLowerCase()),);
+  }
 
   return (
     <div className="section">
@@ -75,21 +94,23 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={searchValue}
+                  onChange={handleSearchChange}
                 />
-
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {searchValue && (
+                  <span className="icon is-right">
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={handleClearSearch}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
@@ -131,6 +152,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={handleResetAll}
               >
                 Reset all filters
               </a>
